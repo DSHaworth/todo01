@@ -1,19 +1,31 @@
 <template>
-  <div>
-    <p>{{ msg }}</p>
+  <div class="left">
 
-    <input placeholder="To Do Item" v-model="toDoItem" ><button type="Button" v-on:click="save()">Save</button>
-    <p>To Do Item is: {{ toDoItem }}</p>
+    <h1>To Do List</h1>
 
-    <ul class="normal">
-      <li class="" v-for = "(item) in toDoItems" :key="item">{{item}}</li>
-    </ul>        
+    <div>    
+      <input placeholder="Title" v-model="toDoItem.title" >
+    </div>
+    <div>
+      <input placeholder="Description" v-model="toDoItem.description" >
+    </div>
+    <div>
+      <input type="checkbox"
+             v-model="toDoItem.done"> Done
+    </div>
+    <div>
+      <button type="Button" v-on:click="save()">Save</button>
+    </div>
+
+    <ul>
+      <li class="" v-for = "(item) in toDoItems" :key="item.id" v-on:click="getTask(item.id)"><strong>{{item.title}}</strong>: {{item.description}}</li>
+    </ul>    
 
   </div>
 </template>
 
 <style scoped>
-  .normal{
+  .left{
     text-align: left;
   }
 </style>
@@ -26,25 +38,38 @@ export default {
   data() {
     return {
       msg: 'TEST',
-      toDoItem: '',
+      toDoItem: {
+        title: "",
+        description: "",
+        done: false
+      },
       toDoItems: []
     };
   },
   methods: {
-    getMessage() {
-      todoService.getPong()
+    getTasks(){
+      todoService.getTasks()
         .then((res) => {
-          this.msg = res.data;
+          if(res.data.isValid){
+            this.toDoItems = res.data.payload;  
+          } else {
+            alert(res.data.errorMessage);
+          }          
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
         });
     },
-    getToDoList(){
-      todoService.getToDoList()
+    getTask(id){
+      todoService.getTask(id)
         .then((res) => {
-          this.toDoItems = res.data;
+          if(res.data.isValid){
+            this.toDoItem = res.data.payload;
+          }
+          else {
+            alert(res.data.errorMessage);
+          }
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -52,10 +77,16 @@ export default {
         });
     },
     save(){
-      todoService.saveItem({"item": this.toDoItem})
+      todoService.saveItem(this.toDoItem)
         .then((res) => {
-          this.toDoItems = res.data;
-          this.toDoItem = "";
+          if(res.data.isValid){
+            this.toDoItems.push(res.data.payload);
+            this.toDoItem.title = "";
+            this.toDoItem.description = "";
+            this.toDoItem.done = false;
+          } else {
+            alert(res.data.errorMessage);
+          }
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -64,8 +95,7 @@ export default {
     }
   },
   created() {
-    this.getMessage();
-    this.getToDoList();
+    this.getTasks();
   },
 };
 </script>
