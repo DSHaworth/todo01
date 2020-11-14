@@ -17,4 +17,13 @@ export default new class {
     getPong(){
         return axiosInstance("/ping");
     }
+
+    getToDoList(){
+        return axiosInstance("/todolist");
+    }
+
+    saveItem(item){
+        return axiosInstance.post("/todolist", item);
+    }
+
  }
